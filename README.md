@@ -14,7 +14,7 @@ A free, browser-based nutrition and meal-planning app for tracking daily food, n
 - **Nutrition suggestions:** View food recommendations based on nutrients still below the selected profile's goals.
 - **Family meal planner:** Generate a suggested balanced menu for a profile, edit its foods and servings, review estimated nutrition coverage, and apply the menu to the rest of the family. Save, reload, update, and delete named meal plans.
 - **Family purchase list:** Estimate shopping quantities from saved family menus and review them by daily, weekly, or 30-day monthly periods.
-- **Custom recipes:** Build recipes from catalog ingredients, estimate nutrition per 100 g, and save recipes for use in food tracking.
+- **Custom recipes:** Build recipes from catalog ingredients or other saved recipes, edit or remove ingredients and adjust their amounts before saving, estimate nutrition per 100 g, and save recipes for use in food tracking. Circular recipe references are prevented.
 - **English and Tamil:** Choose English, Tamil, or a bilingual display from the language selector.
 - **Optional cloud sync:** Sign in with Google when cloud sync is configured and available. Otherwise, the app saves data in the current browser.
 
