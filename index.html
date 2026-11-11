@@ -601,7 +601,10 @@
                     </div>
                 </div>
                 <p id="recipeMeasurementHint" class="text-[11px] text-slate-500">Amounts are converted to grams for nutrition estimates. Volume conversions are approximate.</p>
-                <button type="button" id="btnAddRecipeIngredient" onclick="addRecipeIngredient()" class="rounded-xl border border-slate-300 bg-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 shadow-sm hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">Add ingredient</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btnAddRecipeIngredient" onclick="addRecipeIngredient()" class="rounded-xl border border-slate-300 bg-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 shadow-sm hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">Add ingredient</button>
+                    <button type="button" id="btnCancelRecipeIngredientEdit" onclick="cancelRecipeIngredientEdit()" class="hidden rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1">Cancel</button>
+                </div>
                 <div id="recipeIngredientList" class="space-y-2"></div>
                 <div id="recipeNutritionPreview" class="hidden whitespace-pre-line rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-xs text-emerald-900"></div>
                 <div class="flex justify-end gap-2">
@@ -682,6 +685,7 @@
         let customRecipes = [];
         let recipeIngredientsDraft = [];
         let editingCustomRecipeId = null;
+        let editingRecipeIngredientIndex = null;
         let selectedRecipeIngredientId = null;
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyDO7eGfQjFFZ9UPK4uP66z6x4BHQBP_M_I",
@@ -799,6 +803,9 @@
                     tbsp: "tbsp"
                 },
                 btnAddRecipeIngredient: "Add ingredient",
+                btnUpdateRecipeIngredient: "Update ingredient",
+                btnCancelRecipeIngredientEdit: "Cancel",
+                editRecipeIngredient: "Edit",
                 recipeIngredientEmpty: "Add at least one ingredient to calculate this recipe.",
                 recipeTotalWeight: "Total ingredient weight",
                 recipeTotalNutrition: "Whole recipe",
@@ -807,8 +814,10 @@
                 btnSaveRecipe: "Save recipe",
                 recipeNameRequired: "Enter a name for this recipe.",
                 recipeIngredientsRequired: "Add at least one valid ingredient.",
-                recipeSavedMessage: "Recipe saved and added to your food list.",
-                recipeSavedLocallyMessage: "Recipe saved on this device. Cloud sync will retry when your account is ready.",
+                recipeCreatedMessage: "Recipe created and added to your food list.",
+                recipeUpdatedMessage: "Recipe updated.",
+                recipeCreatedLocallyMessage: "Recipe created on this device. Cloud sync will retry when your account is ready.",
+                recipeUpdatedLocallyMessage: "Recipe updated on this device. Cloud sync will retry when your account is ready.",
                 deleteRecipe: "Delete recipe",
                 confirmDeleteRecipe: "Delete this recipe? This cannot be undone.",
                 recipeDeleted: "Recipe deleted.",
@@ -1027,6 +1036,9 @@
                     tbsp: "tbsp"
                 },
                 btnAddRecipeIngredient: "சேர்மானம் சேர்",
+                btnUpdateRecipeIngredient: "சேர்மானத்தை புதுப்பி",
+                btnCancelRecipeIngredientEdit: "ரத்து செய்",
+                editRecipeIngredient: "திருத்து",
                 recipeIngredientEmpty: "கணக்கிட குறைந்தது ஒரு சேர்மானத்தை சேர்க்கவும்.",
                 recipeTotalWeight: "மொத்த சேர்மான எடை",
                 recipeTotalNutrition: "முழு செய்முறை",
@@ -1035,8 +1047,10 @@
                 btnSaveRecipe: "செய்முறையை சேமி",
                 recipeNameRequired: "செய்முறைக்கு ஒரு பெயரை உள்ளிடவும்.",
                 recipeIngredientsRequired: "குறைந்தது ஒரு சரியான சேர்மானத்தை சேர்க்கவும்.",
-                recipeSavedMessage: "செய்முறை சேமிக்கப்பட்டு உணவு பட்டியலில் சேர்க்கப்பட்டது.",
-                recipeSavedLocallyMessage: "செய்முறை இந்த சாதனத்தில் சேமிக்கப்பட்டது. கணக்கு தயாரானதும் Cloud ஒத்திசைவு மீண்டும் முயற்சிக்கப்படும்.",
+                recipeCreatedMessage: "செய்முறை உருவாக்கப்பட்டு உணவு பட்டியலில் சேர்க்கப்பட்டது.",
+                recipeUpdatedMessage: "செய்முறை புதுப்பிக்கப்பட்டது.",
+                recipeCreatedLocallyMessage: "செய்முறை இந்த சாதனத்தில் உருவாக்கப்பட்டது. கணக்கு தயாரானதும் Cloud ஒத்திசைவு மீண்டும் முயற்சிக்கப்படும்.",
+                recipeUpdatedLocallyMessage: "செய்முறை இந்த சாதனத்தில் புதுப்பிக்கப்பட்டது. கணக்கு தயாரானதும் Cloud ஒத்திசைவு மீண்டும் முயற்சிக்கப்படும்.",
                 deleteRecipe: "செய்முறையை நீக்கு",
                 confirmDeleteRecipe: "இந்த செய்முறையை நீக்கவா? இதை மீட்டெடுக்க முடியாது.",
                 recipeDeleted: "செய்முறை நீக்கப்பட்டது.",
@@ -1255,6 +1269,9 @@
                     tbsp: "tbsp"
                 },
                 btnAddRecipeIngredient: "சேர்மானம் சேர் (Add ingredient)",
+                btnUpdateRecipeIngredient: "சேர்மானத்தை புதுப்பி (Update ingredient)",
+                btnCancelRecipeIngredientEdit: "ரத்து செய் (Cancel)",
+                editRecipeIngredient: "திருத்து (Edit)",
                 recipeIngredientEmpty: "கணக்கிட குறைந்தது ஒரு சேர்மானத்தை சேர்க்கவும். Add an ingredient to calculate nutrition.",
                 recipeTotalWeight: "மொத்த சேர்மான எடை / Total weight",
                 recipeTotalNutrition: "முழு செய்முறை / Whole recipe",
@@ -1263,8 +1280,10 @@
                 btnSaveRecipe: "செய்முறையை சேமி (Save recipe)",
                 recipeNameRequired: "செய்முறைக்கு ஒரு பெயரை உள்ளிடவும். Enter a recipe name.",
                 recipeIngredientsRequired: "குறைந்தது ஒரு சரியான சேர்மானத்தை சேர்க்கவும். Add at least one valid ingredient.",
-                recipeSavedMessage: "செய்முறை சேமிக்கப்பட்டு உணவு பட்டியலில் சேர்க்கப்பட்டது. Recipe saved and added to your food list.",
-                recipeSavedLocallyMessage: "செய்முறை இந்த சாதனத்தில் சேமிக்கப்பட்டது. Cloud sync மீண்டும் முயற்சிக்கப்படும். Recipe saved on this device; cloud sync will retry.",
+                recipeCreatedMessage: "செய்முறை உருவாக்கப்பட்டு உணவு பட்டியலில் சேர்க்கப்பட்டது. Recipe created and added to your food list.",
+                recipeUpdatedMessage: "செய்முறை புதுப்பிக்கப்பட்டது. Recipe updated.",
+                recipeCreatedLocallyMessage: "செய்முறை இந்த சாதனத்தில் உருவாக்கப்பட்டது. Cloud sync மீண்டும் முயற்சிக்கப்படும். Recipe created on this device; cloud sync will retry.",
+                recipeUpdatedLocallyMessage: "செய்முறை இந்த சாதனத்தில் புதுப்பிக்கப்பட்டது. Cloud sync மீண்டும் முயற்சிக்கப்படும். Recipe updated on this device; cloud sync will retry.",
                 deleteRecipe: "செய்முறையை நீக்கு (Delete recipe)",
                 confirmDeleteRecipe: "இந்த செய்முறையை நீக்கவா? இதை மீட்டெடுக்க முடியாது. Delete this recipe?",
                 recipeDeleted: "செய்முறை நீக்கப்பட்டது. Recipe deleted.",
@@ -1841,7 +1860,9 @@
             selectedRecipeIngredientId = String(item.id);
             const searchInput = document.getElementById('recipeIngredientSearch');
             searchInput.value = getFoodDisplayName(item);
-            document.getElementById('recipeIngredientGrams').value = '100';
+            if (editingRecipeIngredientIndex === null) {
+                document.getElementById('recipeIngredientGrams').value = '100';
+            }
             renderRecipeIngredientUnits(item);
             searchInput.setAttribute('aria-expanded', 'false');
             document.getElementById('recipeIngredientDropdown').classList.add('hidden');
@@ -2018,12 +2039,15 @@
                 setActiveSidebarSection('recipeMenu');
                 const recipe = recipeId ? customRecipes.find(item => String(item.id) === String(recipeId)) : null;
                 editingCustomRecipeId = recipe ? recipe.id : null;
+                editingRecipeIngredientIndex = null;
                 recipeIngredientsDraft = [];
                 document.getElementById('recipeName').value = recipe ? (recipe.nameEn || recipe.nameTa) : '';
                 selectedRecipeIngredientId = null;
                 document.getElementById('recipeIngredientSearch').value = '';
                 document.getElementById('recipeIngredientGrams').value = '100';
                 renderRecipeIngredientUnits();
+                document.getElementById('btnAddRecipeIngredient').textContent = I18N[currentLang].btnAddRecipeIngredient;
+                document.getElementById('btnCancelRecipeIngredientEdit').classList.add('hidden');
                 renderRecipeIngredients();
                 renderRecipeIngredientOptions();
                 if (recipe) {
@@ -2062,12 +2086,15 @@
             } else {
                 recipeIngredientsDraft = [];
                 editingCustomRecipeId = null;
+                editingRecipeIngredientIndex = null;
                 selectedRecipeIngredientId = null;
                 document.getElementById('recipeIngredientSearch').value = '';
                 document.getElementById('recipeIngredientDropdown').classList.add('hidden');
                 document.getElementById('recipeIngredientSearch').setAttribute('aria-expanded', 'false');
                 document.getElementById('recipeIngredientGrams').value = '100';
                 renderRecipeIngredientUnits();
+                document.getElementById('btnAddRecipeIngredient').textContent = I18N[currentLang].btnAddRecipeIngredient;
+                document.getElementById('btnCancelRecipeIngredientEdit').classList.add('hidden');
                 document.getElementById('recipeBuilderTitle').textContent = I18N[currentLang].recipeBuilderTitle;
                 document.getElementById('btnSaveRecipe').textContent = I18N[currentLang].btnSaveRecipe;
                 renderRecipeIngredients();
@@ -2083,6 +2110,44 @@
             toggleRecipeBuilder(true, recipeId);
         }
 
+        function editRecipeIngredient(index) {
+            const ingredient = recipeIngredientsDraft[index];
+            if (!ingredient) return;
+
+            const dict = I18N[currentLang];
+            editingRecipeIngredientIndex = index;
+            selectedRecipeIngredientId = String(ingredient.food.id);
+            const searchInput = document.getElementById('recipeIngredientSearch');
+            searchInput.value = getFoodDisplayName(ingredient.food);
+            document.getElementById('recipeIngredientGrams').value = String(ingredient.amount ?? ingredient.grams);
+            const typeFilter = document.getElementById('recipeIngredientTypeFilter');
+            typeFilter.value = 'all';
+            renderRecipeIngredientUnits(ingredient.food);
+            document.getElementById('recipeIngredientUnit').value = ingredient.unit || 'g';
+            updateRecipeIngredientAmountLimits();
+            document.getElementById('recipeIngredientDropdown').classList.add('hidden');
+            searchInput.setAttribute('aria-expanded', 'false');
+            document.getElementById('clearRecipeIngredientSearch').classList.remove('hidden');
+            document.getElementById('btnAddRecipeIngredient').textContent = dict.btnUpdateRecipeIngredient;
+            document.getElementById('btnCancelRecipeIngredientEdit').classList.remove('hidden');
+            renderRecipeIngredientOptions();
+            document.getElementById('recipeIngredientGrams').focus();
+        }
+
+        function cancelRecipeIngredientEdit() {
+            editingRecipeIngredientIndex = null;
+            selectedRecipeIngredientId = null;
+            document.getElementById('recipeIngredientSearch').value = '';
+            document.getElementById('recipeIngredientGrams').value = '100';
+            document.getElementById('recipeIngredientUnit').value = 'g';
+            renderRecipeIngredientUnits();
+            document.getElementById('recipeIngredientDropdown').classList.add('hidden');
+            document.getElementById('recipeIngredientSearch').setAttribute('aria-expanded', 'false');
+            document.getElementById('btnAddRecipeIngredient').textContent = I18N[currentLang].btnAddRecipeIngredient;
+            document.getElementById('btnCancelRecipeIngredientEdit').classList.add('hidden');
+            renderRecipeIngredientOptions();
+        }
+
         function addRecipeIngredient() {
             const item = FOOD_DATABASE.find(food => String(food.id) === String(selectedRecipeIngredientId));
             const amount = Number(document.getElementById('recipeIngredientGrams').value);
@@ -2093,11 +2158,18 @@
                 return;
             }
 
-            recipeIngredientsDraft.push({ food: { ...item }, amount, unit, grams });
+            const ingredient = { food: { ...item }, amount, unit, grams };
+            if (editingRecipeIngredientIndex === null) {
+                recipeIngredientsDraft.push(ingredient);
+            } else {
+                recipeIngredientsDraft[editingRecipeIngredientIndex] = ingredient;
+                cancelRecipeIngredientEdit();
+            }
             renderRecipeIngredients();
         }
 
         function removeRecipeIngredient(index) {
+            if (editingRecipeIngredientIndex !== null) cancelRecipeIngredientEdit();
             recipeIngredientsDraft.splice(index, 1);
             renderRecipeIngredients();
         }
@@ -2131,9 +2203,13 @@
             list.className = 'space-y-2';
             recipeIngredientsDraft.forEach((ingredient, index) => {
                 const row = document.createElement('div');
-                row.className = 'flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 text-xs';
+                row.className = `flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs ${
+                    editingRecipeIngredientIndex === index
+                        ? 'bg-indigo-50 ring-1 ring-indigo-200'
+                        : 'bg-slate-50'
+                }`;
                 const label = document.createElement('span');
-                label.className = 'font-medium text-slate-700';
+                label.className = 'min-w-0 flex-1 font-medium text-slate-700';
                 const amount = Number(ingredient.amount ?? ingredient.grams);
                 const displayAmount = Number.isInteger(amount)
                     ? String(amount)
@@ -2145,12 +2221,21 @@
                         ? ` (${Number(ingredient.grams.toFixed(1))} g)`
                         : ` (${dict.recipeApproxGrams} ${Number(ingredient.grams.toFixed(1))} g)`;
                 label.textContent = `${getFoodDisplayName(ingredient.food)} · ${displayAmount} ${dict.recipeUnits[unit] || unit}${convertedWeight}`;
+                const actions = document.createElement('div');
+                actions.className = 'flex shrink-0 items-center gap-3';
+                const editButton = document.createElement('button');
+                editButton.type = 'button';
+                editButton.className = 'font-semibold text-indigo-600 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2';
+                editButton.textContent = dict.editRecipeIngredient;
+                editButton.setAttribute('aria-label', `${dict.editRecipeIngredient}: ${getFoodDisplayName(ingredient.food)}`);
+                editButton.onclick = () => editRecipeIngredient(index);
                 const removeButton = document.createElement('button');
                 removeButton.type = 'button';
-                removeButton.className = 'text-rose-600 hover:text-rose-700 font-semibold';
+                removeButton.className = 'font-semibold text-rose-600 hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2';
                 removeButton.textContent = dict.removeIngredient;
                 removeButton.onclick = () => removeRecipeIngredient(index);
-                row.append(label, removeButton);
+                actions.append(editButton, removeButton);
+                row.append(label, actions);
                 list.appendChild(row);
             });
 
@@ -2169,6 +2254,11 @@
 
         async function saveCustomRecipe() {
             const dict = I18N[currentLang];
+            if (editingRecipeIngredientIndex !== null) {
+                addRecipeIngredient();
+                if (editingRecipeIngredientIndex !== null) return;
+            }
+            const isUpdating = Boolean(editingCustomRecipeId);
             const name = document.getElementById('recipeName').value.trim();
             if (!name) {
                 alert(dict.recipeNameRequired);
@@ -2198,6 +2288,10 @@
             }
 
             const { totalWeight, totals, per100 } = calculateRecipeNutrition(recipeIngredientsDraft);
+            const successMessage = isUpdating ? dict.recipeUpdatedMessage : dict.recipeCreatedMessage;
+            const localSuccessMessage = isUpdating
+                ? dict.recipeUpdatedLocallyMessage
+                : dict.recipeCreatedLocallyMessage;
             const recipeId = editingCustomRecipeId || (window.crypto && window.crypto.randomUUID
                 ? window.crypto.randomUUID()
                 : `recipe_${Date.now()}_${Math.random().toString(36).slice(2)}`);
@@ -2247,17 +2341,17 @@
                 try {
                     await cloudUserRef().collection('recipes').doc(recipeId).set(recipe);
                     removePendingCustomRecipe(cloudUser.uid, recipeId);
-                    alert(dict.recipeSavedMessage);
+                    showSnackbar(successMessage);
                 } catch (error) {
                     try {
                         savePendingCustomRecipe(cloudUser.uid, recipe);
                     } catch (queueError) {
                         setCloudStatus('syncError', `${error.message}; ${queueError.message}`);
-                        alert(`${dict.recipeSavedLocallyMessage}\n${dict.syncError}: ${error.message}`);
+                        alert(`${localSuccessMessage}\n${dict.syncError}: ${error.message}`);
                         return;
                     }
                     setCloudStatus('syncError', error.message);
-                    alert(`${dict.recipeSavedLocallyMessage}\n${dict.syncError}: ${error.message}`);
+                    alert(`${localSuccessMessage}\n${dict.syncError}: ${error.message}`);
                 }
                 return;
             }
@@ -2267,14 +2361,14 @@
                     savePendingCustomRecipe(cloudUser.uid, recipe);
                 } catch (error) {
                     setCloudStatus('syncError', error.message);
-                    alert(`${dict.recipeSavedLocallyMessage}\n${dict.syncError}: ${error.message}`);
+                    alert(`${localSuccessMessage}\n${dict.syncError}: ${error.message}`);
                     return;
                 }
-                alert(dict.recipeSavedLocallyMessage);
+                showSnackbar(localSuccessMessage);
                 return;
             }
 
-            alert(dict.recipeSavedMessage);
+            showSnackbar(successMessage);
         }
 
         async function deleteCustomRecipe(recipeId) {
@@ -2312,7 +2406,7 @@
             renderFoodDropdown(getAllFoodItems());
             renderRecipeIngredientOptions();
             renderRecipeMenu();
-            alert(dict.recipeDeleted);
+            showSnackbar(dict.recipeDeleted);
         }
 
         // Initialize App on DOM Load
@@ -3484,7 +3578,14 @@
             document.getElementById('recipeIngredientUnit').setAttribute('aria-label', dict.recipeUnitLabel);
             document.getElementById('recipeMeasurementHint').innerText = dict.recipeMeasurementHint;
             renderRecipeIngredientUnits();
-            document.getElementById('btnAddRecipeIngredient').innerText = dict.btnAddRecipeIngredient;
+            document.getElementById('btnAddRecipeIngredient').innerText = editingRecipeIngredientIndex === null
+                ? dict.btnAddRecipeIngredient
+                : dict.btnUpdateRecipeIngredient;
+            document.getElementById('btnCancelRecipeIngredientEdit').innerText = dict.btnCancelRecipeIngredientEdit;
+            document.getElementById('btnCancelRecipeIngredientEdit').classList.toggle(
+                'hidden',
+                editingRecipeIngredientIndex === null
+            );
             document.getElementById('btnCancelRecipe').innerText = dict.btnCancelRecipe;
             document.getElementById('btnSaveRecipe').innerText =
                 editingCustomRecipeId ? dict.btnUpdateRecipe : dict.btnSaveRecipe;
