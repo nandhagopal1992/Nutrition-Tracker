@@ -914,6 +914,9 @@
                 courseSnack: "Evening snacks",
                 courseDinner: "Dinner",
                 addToPlan: "Add food",
+                mealPlanFoodSearchLabel: "Food or recipe",
+                mealPlanFoodNoMatches: "No foods or recipes match your filters.",
+                mealPlanFoodClearSearch: "Clear food search",
                 planQuantity: "Serving (g)",
                 selectedFoodNutrition: "Nutrition for selected food and quantity",
                 removePlanItem: "Remove",
@@ -1149,6 +1152,9 @@
                 courseSnack: "மாலை சிற்றுண்டி",
                 courseDinner: "இரவு உணவு",
                 addToPlan: "உணவைச் சேர்",
+                mealPlanFoodSearchLabel: "உணவு அல்லது செய்முறை",
+                mealPlanFoodNoMatches: "வடிகட்டிகளுக்கு பொருந்தும் உணவுகள் அல்லது செய்முறைகள் இல்லை.",
+                mealPlanFoodClearSearch: "உணவு தேடலை அழிக்கவும்",
                 planQuantity: "அளவு (g)",
                 selectedFoodNutrition: "தேர்ந்தெடுத்த உணவு மற்றும் அளவிற்கான ஊட்டச்சத்து",
                 removePlanItem: "நீக்கு",
@@ -1384,6 +1390,9 @@
                 courseSnack: "மாலை சிற்றுண்டி (Evening snack)",
                 courseDinner: "இரவு உணவு (Dinner)",
                 addToPlan: "உணவைச் சேர் (Add food)",
+                mealPlanFoodSearchLabel: "உணவு அல்லது செய்முறை (Food or recipe)",
+                mealPlanFoodNoMatches: "பொருந்தும் உணவுகள் இல்லை (No matching foods or recipes).",
+                mealPlanFoodClearSearch: "உணவு தேடலை அழிக்கவும் (Clear food search)",
                 planQuantity: "அளவு / Serving (g)",
                 selectedFoodNutrition: "தேர்ந்தெடுத்த உணவு மற்றும் அளவிற்கான ஊட்டச்சத்து (Selected food nutrition)",
                 removePlanItem: "நீக்கு (Remove)",
@@ -2502,6 +2511,14 @@
                     recipeDropdown.classList.add('hidden');
                     recipeSearch.setAttribute('aria-expanded', 'false');
                 }
+
+                document.querySelectorAll('.mealPlanFoodPicker').forEach(picker => {
+                    if (picker.contains(e.target)) return;
+                    const mealPlanSearch = picker.querySelector('.mealPlanFoodSearch');
+                    const mealPlanDropdown = picker.querySelector('.mealPlanFoodDropdown');
+                    mealPlanDropdown.classList.add('hidden');
+                    mealPlanSearch.setAttribute('aria-expanded', 'false');
+                });
             });
         });
 
@@ -4105,13 +4122,92 @@
             saveMealPlan(profile);
         }
 
-        function addMealPlanFood(courseId, select, quantityInput) {
+        function addMealPlanFood(courseId, foodId, quantityInput) {
             const profile = selectedMealPlanProfile();
-            const food = findPlanFood(select.value);
+            const food = findPlanFood(foodId);
             const grams = Number(quantityInput.value);
             if (!profile || !food || !Number.isFinite(grams) || grams < 1 || grams > 5000) return;
             getMealPlan(profile)[courseId].push({ foodId: food.id, grams });
             saveMealPlan(profile);
+        }
+
+        function renderMealPlanFoodOptions(picker, showDropdown = false) {
+            const dropdown = picker.querySelector('.mealPlanFoodDropdown');
+            const typeFilter = picker.querySelector('.mealPlanFoodTypeFilter');
+            const searchInput = picker.querySelector('.mealPlanFoodSearch');
+            if (!dropdown || !typeFilter || !searchInput) return;
+
+            const dict = I18N[currentLang];
+            const foods = getAllFoodItems();
+            const availableTypes = Array.from(new Set(foods.map(food => food.type)));
+            const previousType = typeFilter.value;
+            typeFilter.innerHTML = `<option value="all">${escapeHtml(dict.foodTypes.all)}</option>` +
+                availableTypes.map(type =>
+                    `<option value="${escapeHtml(type)}">${escapeHtml(dict.foodTypes[type] || type)}</option>`
+                ).join('');
+            typeFilter.value = availableTypes.includes(previousType) ? previousType : 'all';
+
+            const query = searchInput.dataset.foodId
+                ? ''
+                : searchInput.value.trim().toLocaleLowerCase();
+            const filteredFoods = foods.filter(food =>
+                (typeFilter.value === 'all' || food.type === typeFilter.value) &&
+                (!query || `${food.nameEn} ${food.nameTa}`.toLocaleLowerCase().includes(query))
+            );
+            const addButton = picker.querySelector('.addMealPlanFood');
+            addButton.disabled = !searchInput.dataset.foodId;
+            picker.querySelector('.clearMealPlanFoodSearch').classList.toggle('hidden', !searchInput.value);
+            dropdown.replaceChildren();
+
+            if (!filteredFoods.length) {
+                const empty = document.createElement('div');
+                empty.className = 'p-4 text-center text-xs text-slate-400';
+                empty.textContent = dict.mealPlanFoodNoMatches;
+                dropdown.appendChild(empty);
+            } else {
+                filteredFoods.forEach(food => {
+                    const option = document.createElement('button');
+                    option.type = 'button';
+                    option.setAttribute('role', 'option');
+                    option.setAttribute('aria-selected', String(String(food.id) === searchInput.dataset.foodId));
+                    option.className = 'flex w-full items-center gap-2.5 border-b border-slate-50 p-3 text-left last:border-0 hover:bg-slate-50';
+                    option.innerHTML = `
+                        <span class="text-xl">${escapeHtml(food.icon || '🥗')}</span>
+                        <span class="min-w-0">
+                            <span class="block truncate text-xs font-semibold text-slate-800">${escapeHtml(getFoodDisplayName(food))}</span>
+                            <span class="block text-[11px] text-slate-400">${escapeHtml(getFoodTypeDisplayName(food))} · ${escapeHtml(getCategoryDisplayName(food))}</span>
+                        </span>`;
+                    option.addEventListener('click', () => {
+                        searchInput.dataset.foodId = String(food.id);
+                        searchInput.value = getFoodDisplayName(food);
+                        dropdown.classList.add('hidden');
+                        searchInput.setAttribute('aria-expanded', 'false');
+                        addButton.disabled = false;
+                        picker.querySelector('.clearMealPlanFoodSearch').classList.remove('hidden');
+                        renderMealPlanFoodPreview(
+                            picker.closest('section').querySelector('.mealPlanNutritionPreview'),
+                            food.id,
+                            picker.querySelector('.mealPlanNewQuantity').value
+                        );
+                    });
+                    dropdown.appendChild(option);
+                });
+            }
+
+            const isOpen = showDropdown || document.activeElement === searchInput;
+            dropdown.classList.toggle('hidden', !isOpen);
+            searchInput.setAttribute('aria-expanded', String(isOpen));
+        }
+
+        function filterMealPlanFoodOptions(searchInput) {
+            delete searchInput.dataset.foodId;
+            const picker = searchInput.closest('.mealPlanFoodPicker');
+            renderMealPlanFoodOptions(picker, true);
+            renderMealPlanFoodPreview(
+                picker.closest('section').querySelector('.mealPlanNutritionPreview'),
+                '',
+                picker.querySelector('.mealPlanNewQuantity').value
+            );
         }
 
         function canAddPlanFoodToConsumption(profile) {
@@ -4190,14 +4286,26 @@
                         <button type="button" class="removeMealPlanFood rounded p-1 text-rose-500 hover:bg-rose-50" aria-label="${escapeHtml(I18N[currentLang].removePlanItem)}" data-index="${index}">×</button>
                     </div>`;
                 }).join('');
-                const options = foods.map(food => `<option value="${escapeHtml(food.id)}">${escapeHtml(getFoodDisplayName(food))}</option>`).join('');
                 return `<section class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <h3 class="mb-2 text-sm font-bold text-slate-800">${I18N[currentLang][course.label]}</h3>
                     <div class="mb-3 space-y-2">${rows || `<p class="text-xs text-slate-400">${I18N[currentLang].noPlan}</p>`}</div>
-                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_5.5rem_auto]">
-                        <select class="mealPlanFood min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" aria-label="${I18N[currentLang].addToPlan}">${options}</select>
-                        <input class="mealPlanNewQuantity rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs" type="number" min="1" max="5000" value="100" aria-label="${escapeHtml(I18N[currentLang].planQuantity)}">
-                        <button type="button" class="addMealPlanFood rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">${I18N[currentLang].addToPlan}</button>
+                    <div class="mealPlanFoodPicker space-y-2">
+                        <label class="block text-[11px] font-medium text-slate-500">${escapeHtml(I18N[currentLang].recipeIngredientTypeLabel)}
+                            <select class="mealPlanFoodTypeFilter mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs"></select>
+                        </label>
+                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_5.5rem_auto]">
+                            <label class="relative block min-w-0">
+                                <span class="sr-only">${escapeHtml(I18N[currentLang].mealPlanFoodSearchLabel)}</span>
+                                <i data-lucide="search" class="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400"></i>
+                                <input class="mealPlanFoodSearch w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-9 text-xs" type="text" placeholder="${escapeHtml(I18N[currentLang].recipeIngredientSearchPlaceholder)}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="mealPlanFoodDropdown-${course.id}" aria-expanded="false" aria-label="${escapeHtml(I18N[currentLang].mealPlanFoodSearchLabel)}">
+                                <button type="button" class="clearMealPlanFoodSearch hidden absolute right-3 top-2.5 text-slate-400 hover:text-slate-600" aria-label="${escapeHtml(I18N[currentLang].mealPlanFoodClearSearch)}">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                                <div id="mealPlanFoodDropdown-${course.id}" class="mealPlanFoodDropdown hidden absolute left-0 right-0 z-30 mt-1.5 max-h-60 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-xl divide-y divide-slate-100" role="listbox"></div>
+                            </label>
+                            <input class="mealPlanNewQuantity rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs" type="number" min="1" max="5000" value="100" aria-label="${escapeHtml(I18N[currentLang].planQuantity)}">
+                            <button type="button" class="addMealPlanFood rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50" disabled>${I18N[currentLang].addToPlan}</button>
+                        </div>
                     </div>
                     <div class="mealPlanNutritionPreview mt-2"></div>
                 </section>`;
@@ -4232,19 +4340,55 @@
                         if (meal) addPlanFoodToConsumption(meal.foodId, meal.grams);
                     });
                 });
-                section.querySelector('.addMealPlanFood').addEventListener('click', () => {
-                    addMealPlanFood(course.id, section.querySelector('.mealPlanFood'), section.querySelector('.mealPlanNewQuantity'));
-                });
-                const foodSelect = section.querySelector('.mealPlanFood');
+                const picker = section.querySelector('.mealPlanFoodPicker');
+                const foodSearch = picker.querySelector('.mealPlanFoodSearch');
+                const foodTypeFilter = picker.querySelector('.mealPlanFoodTypeFilter');
+                const foodDropdown = picker.querySelector('.mealPlanFoodDropdown');
                 const newQuantityInput = section.querySelector('.mealPlanNewQuantity');
-                const updatePreview = () => renderMealPlanFoodPreview(
+                section.querySelector('.addMealPlanFood').addEventListener('click', () => {
+                    addMealPlanFood(course.id, foodSearch.dataset.foodId, newQuantityInput);
+                });
+                foodSearch.addEventListener('focus', () => renderMealPlanFoodOptions(picker, true));
+                foodSearch.addEventListener('input', () => filterMealPlanFoodOptions(foodSearch));
+                foodSearch.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') {
+                        foodDropdown.classList.add('hidden');
+                        foodSearch.setAttribute('aria-expanded', 'false');
+                    } else if (event.key === 'ArrowDown' && !foodDropdown.classList.contains('hidden')) {
+                        const firstOption = foodDropdown.querySelector('[role="option"]');
+                        if (firstOption) {
+                            event.preventDefault();
+                            firstOption.focus();
+                        }
+                    }
+                });
+                foodTypeFilter.addEventListener('change', () => {
+                    foodSearch.value = '';
+                    delete foodSearch.dataset.foodId;
+                    renderMealPlanFoodOptions(picker, true);
+                    renderMealPlanFoodPreview(
+                        section.querySelector('.mealPlanNutritionPreview'),
+                        '',
+                        newQuantityInput.value
+                    );
+                });
+                picker.querySelector('.clearMealPlanFoodSearch').addEventListener('click', () => {
+                    foodSearch.value = '';
+                    delete foodSearch.dataset.foodId;
+                    renderMealPlanFoodOptions(picker, true);
+                    renderMealPlanFoodPreview(
+                        section.querySelector('.mealPlanNutritionPreview'),
+                        '',
+                        newQuantityInput.value
+                    );
+                    foodSearch.focus();
+                });
+                newQuantityInput.addEventListener('input', () => renderMealPlanFoodPreview(
                     section.querySelector('.mealPlanNutritionPreview'),
-                    foodSelect.value,
+                    foodSearch.dataset.foodId,
                     newQuantityInput.value
-                );
-                foodSelect.addEventListener('change', updatePreview);
-                newQuantityInput.addEventListener('input', updatePreview);
-                updatePreview();
+                ));
+                renderMealPlanFoodOptions(picker);
             });
             lucide.createIcons();
             renderMealPlanCoverage(profile, plan);
