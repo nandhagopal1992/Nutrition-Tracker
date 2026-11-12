@@ -4285,10 +4285,9 @@
                         <input type="number" min="1" max="5000" value="${Number(meal.grams)}" class="mealPlanQuantity rounded-md border border-slate-200 px-2 py-1 text-right" aria-label="${escapeHtml(I18N[currentLang].planQuantity)}" data-index="${index}">
                         <button type="button" class="removeMealPlanFood rounded p-1 text-rose-500 hover:bg-rose-50" aria-label="${escapeHtml(I18N[currentLang].removePlanItem)}" data-index="${index}">×</button>
                     </div>`;
-                }).join('');
+                }).reverse().join('');
                 return `<section class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <h3 class="mb-2 text-sm font-bold text-slate-800">${I18N[currentLang][course.label]}</h3>
-                    <div class="mb-3 space-y-2">${rows || `<p class="text-xs text-slate-400">${I18N[currentLang].noPlan}</p>`}</div>
                     <div class="mealPlanFoodPicker space-y-2">
                         <label class="block text-[11px] font-medium text-slate-500">${escapeHtml(I18N[currentLang].recipeIngredientTypeLabel)}
                             <select class="mealPlanFoodTypeFilter mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs"></select>
@@ -4308,6 +4307,7 @@
                         </div>
                     </div>
                     <div class="mealPlanNutritionPreview mt-2"></div>
+                    <div class="mealPlanAddedFoods mt-3 space-y-2">${rows || `<p class="text-xs text-slate-400">${I18N[currentLang].noPlan}</p>`}</div>
                 </section>`;
             }).join('');
 
